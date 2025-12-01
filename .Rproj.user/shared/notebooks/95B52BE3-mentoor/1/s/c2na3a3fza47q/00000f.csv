@@ -1,0 +1,8 @@
+"0","if(!require(pacman))"
+"0","  instal.packages(""pacman"")"
+"0","pacman::p_load(janitor,"
+"0","               tidyverse,"
+"0","               gt,"
+"0","               here,"
+"0","               readxl"
+"0","               )"

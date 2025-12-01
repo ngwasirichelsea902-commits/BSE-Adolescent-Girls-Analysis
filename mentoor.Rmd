@@ -1,0 +1,405 @@
+---
+title: "Knowledge, Attitude, and Practice of Breast Self Examination(BSE) amongst adolescent girls at Government Bilingual Schol and Bishop Jules, Buea,Cameroon"
+author: "NGWASIRI CHELSEA"
+date: "2025-10-26"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message= FALSE)
+```
+
+
+
+```{r cars}
+if(!require(pacman))
+  instal.packages("pacman")
+pacman::p_load(janitor,
+               tidyverse,
+               gt,
+               here,
+               readxl,
+               knitr,
+               gtsummary,
+               flextable
+               )
+```
+
+
+
+```{r load data, include=FALSE}
+data<-readxl::read_excel(here("data/mentor_edited.xlsx"))
+summary(data)
+```
+
+
+```{r cleaning data, message=FALSE, include=FALSE}
+#####
+#CHANGING THE VAIRABLES OF THE DATA
+
+data1<-data %>% 
+mutate(Age=as.integer(Age))#CHANGING AGE TO A NUMERICAL VAIRABLE
+summary(data1)
+data2<-data1 %>% 
+  mutate(across(where(is.character),as.factor))  #MUTATING ALL CATEGORICAL DATA INTO FACTORS
+summary(data2)
+
+
+#####
+#CREATING AN AGE GROUP COLUMN
+data3<-data2 %>% 
+  mutate(`Age group`=case_when(Age>=10 & Age<=13 ~ "10-13",
+                             Age>=14 & Age<=16 ~ "14-16",
+                             TRUE~ "17-19")) %>% 
+  select(`Age group`,everything()) %>% 
+  rename(`Do you use any aids or tools during BSE`=`Do you use any aids or tools during BSE...42`)
+  
+
+summary(data3)
+
+#####
+#REMOVING COLUMS THAT ARENT NEEDED
+data4<-data3 %>% 
+select(!c("start","end","Specify others","Do you use any aids or tools during BSE/Option 5","Do you have a at history of breast cancer","At what age should you start performing","Do you think BSE is a private matter that should not be discussed openly","Do you think BSE is time consuming or inconvenient","Do you believe that BSE can help prevent breast cancer","Ethnic group")) %>% 
+  mutate(`Age group`=as.factor(`Age group`))
+summary(data4)
+head(data4)
+data5<-data4 %>% 
+  mutate(knowledgeRank= rowSums(cbind(`Have you ever heard of breast self examination cnt`,`If yes, where did you hear about it cnt`,`What is breast self examination cnt`, `Why is breast self examination important cnt`,`How often should BSE be perform cnt`,`At what age should you start performing BSE cnt`,`Which part of the body should you use for BSE cnt`,`What should you do if you find a lump or abnormality during BSE cnt`,`In which position do you perform BSE cnt`), na.rm=TRUE),
+         KnowledgeRemark=case_when(knowledgeRank>5~"Good",
+                                   knowledgeRank==5~"Average",
+                                   knowledgeRank<5~"Poor"),
+  AtittudeRank=rowSums(cbind(`Do you think BSE is a useful tool for maintaining breast health cnt`,`Do you believe that BSE is something you can still do easily and effectively cnt`,`Do you think BSE should be discussed openly cnt`, `Do you think BSE should be practiced by all women of child bearing age cnt`,`Do you believe that BSE can help reduce the death rate of breast cancer cnt`, `Do you believe Breast self examination is important to you cnt`,`Do you believe in sharing and talking about BSE with others cnt`), na.rm=TRUE),
+  AtittudeRemark=case_when(AtittudeRank>14~"Good",
+                           AtittudeRank==14~"Average",
+                          AtittudeRank<14~"Poor"))
+
+data5<-data5 %>% 
+mutate(PracticeRank=rowSums(cbind(`How often do you perform BSE cnt`,`How long have you been practicing BSE cnt`,`Do you perform BSE at thesame time every month cnt`,`How do you typically perform BSE cnt`,`Which part of your breast do you examine during BSE cnt`,`Do you use any aids or tools during BSE...85`,`When last did you do a BSE cnt`), na.rm = TRUE),
+  PracticeRemark=case_when(PracticeRank>4~"Good",
+                           PracticeRank<=4~"Poor"))
+
+
+data5 %>% 
+mutate(KnowledgeRemark= as.factor(KnowledgeRemark),
+       AtittudeRemark=as.factor(AtittudeRemark)) %>% 
+count(KnowledgeRemark) 
+data5 %>% 
+  count(AtittudeRemark)
+summary(data5)
+
+```
+
+## Table 1: Demographic data
+```{r demographic data}
+demo_data<-data4 %>% 
+  select(c("Age group","School" ,"Sex","Religion","Residence", "With whom do you stay with" ,"What is your class", "Do you have any disability", "Do you have any family history of breast cancer"))  
+ tbl_summary( demo_data,
+    type = list(
+      all_dichotomous() ~ "categorical"  # Treat all Yes/No as categorical, not dichotomous
+    ),
+    statistic = list(all_categorical() ~ "{n} ({p}%)")
+  )
+
+```
+ 
+
+ 
+ 
+ 
+## Table 2: Description Of vairables assessing Knowlege
+
+```{r knowlege assesment}
+know_data<-data4 %>% 
+  select(c("Have you ever heard of breast self examination", "If yes, where did you hear about it","What is breast self examination", "Why is breast self examination important", "How often should BSE be perform", "At what age should you start performing BSE" ,"Which part of the body should you use for BSE", "What should you do if you find a lump or abnormality during BSE", "In which position do you perform BSE","Do you think BSE is a useful tool for maintaining breast health"))
+ tbl_summary( know_data,
+    type = list(
+      all_dichotomous() ~ "categorical"  # Treat all Yes/No as categorical, not dichotomous
+    ),
+    statistic = list(all_categorical() ~ "{n} ({p}%)")
+  )
+ 
+
+```
+
+
+
+## Figure 1
+
+This is a visual representation of the overall knowledge distribution of BSE among adolescents females at Bilingual Grammar school and St Jules peter in Buea,cameroon
+
+```{r}
+  ggplot(data5) +
+  aes(x ="", fill = KnowledgeRemark) +
+  geom_bar() +
+  labs(
+    caption = "Visualisation of overall knowledge "
+  )+
+  coord_polar(theta = "y") +
+  theme_void()
+
+ 
+ 
+```
+
+
+## Table 3: Knowledge x sociodemographic data
+
+This table shows the overall distribution of Knowledge, based on the demographic data abd stating thier p-value which was obtained using the chisq.test
+
+```{r}
+knowxremark<-data5 %>% 
+ select(c("Age group","School" ,"Sex","Religion","Residence", "With whom do you stay with" ,"What is your class", "Do you have any disability", "Do you have any family history of breast cancer","KnowledgeRemark")) %>% 
+  tbl_summary(by = KnowledgeRemark, # Replace 'Outcome' with the name of your Yes/No column
+              type = list(
+                          all_dichotomous() ~ "categorical"  # Treat all Yes/No as categorical, not dichotomous
+                          ),# Replace 'Outcome' with the name of your Yes/No column
+    statistic = list(all_categorical() ~ "{n} ({p}%)"),
+    digits = list(all_categorical() ~ c(0, 1))) %>%
+  add_p(test = list(all_categorical() ~ "chisq.test"), 
+        pvalue_fun = function(x) style_pvalue(x, digits = 3)) %>%
+  modify_header(label ~ "*Category*") %>%
+  bold_labels() 
+knowxremark
+
+
+```
+
+
+
+## Figure 2
+
+The graph below compare the overallKnowledge of BSE between adolescent girls at Bilingual grammar school and Bishop Jules Peter
+
+```{r}
+
+ggplot(data5) +
+  aes(x = KnowledgeRemark, fill = School) +
+  geom_bar(position = "dodge2") +
+  scale_fill_hue(direction = 1) +
+  labs(
+    caption = "2024 visualization of Knowledge of BSE amongst Bilingual Grammar School and Bishop Jules Peter"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.y = element_text(size = 20L),
+    axis.text.x = element_text(size = 10L)
+  )
+
+
+```
+
+
+
+## Description of variables assessing Attitude
+```{r attitude}
+att_data<-data4%>% 
+  select(c("Do you think BSE is a useful tool for maintaining breast health","Do you believe that BSE is something you can still do easily and effectively","Do you think BSE should be discussed openly", "Do you think BSE should be practiced by all women of child bearing age","Do you believe that BSE can help reduce the death rate of breast cancer", "Do you believe Breast self examination is important to you","Do you believe in sharing and talking about BSE with others"))
+ 
+ tbl_summary( know_data,
+    type = list(
+      all_dichotomous() ~ "categorical"  # Treat all Yes/No as categorical, not dichotomous
+    ),
+    statistic = list(all_categorical() ~ "{n} ({p}%)")
+  )
+ 
+
+
+
+
+
+
+
+```
+
+
+## Figure 3
+
+This is a visual representation of the overall Attitude distribution of BSE among adolescent females at Bilingual Grammar school and St Jules peter in Buea,cameroon
+
+```{r}
+ ggplot(data5) +
+  aes(x ="", fill = AtittudeRemark) +
+  geom_bar() +
+  labs(
+    caption = "Visualisation of overall Attitude"
+  )+
+  coord_polar(theta = "y") +
+  theme_void()
+
+
+```
+
+
+## Attitude x Sociodemographic data
+
+This table shows the overall distribution of adolescent girls Attitude towards BSE, on the demographic data and stating their p-value which was obtained using the chisq.test
+
+```{r}
+attxremark<-data5 %>% 
+ select(c("Age group","School" ,"Sex","Religion","Residence", "With whom do you stay with" ,"What is your class", "Do you have any disability", "Do you have any family history of breast cancer","AtittudeRemark")) %>% 
+  tbl_summary(by = AtittudeRemark ,# Replace 'Outcome' with the name of your Yes/No column
+              type = list(
+                          all_dichotomous() ~ "categorical"  # Treat all Yes/No as categorical, not dichotomous
+                          ),# Replace 'Outcome' with the name of your Yes/No column
+    statistic = list(all_categorical() ~ "{n} ({p}%)"),
+    digits = list(all_categorical() ~ c(0, 1))) %>%
+  add_p(test = list(all_categorical() ~ "chisq.test"), 
+        pvalue_fun = function(x) style_pvalue(x, digits = 3)) %>%
+  modify_header(label ~ "*Category*") %>%
+  bold_labels() 
+attxremark
+
+```
+
+
+## Figure 4
+
+The graph below compare the overall Practice of BSE between adolescent girls at Bilingual grammar school and Bishop Jules Peter
+
+```{r}
+ggplot(data5) +
+  aes(x = AtittudeRemark, fill = School) +
+  geom_bar(position = "dodge2") +
+  scale_fill_hue(direction = 1) +
+  labs(
+    caption = "2024 visualization of Attitude of BSE amongst Bilingual Grammar School and Bishop Jules Peter"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.y = element_text(size = 20L),
+    axis.text.x = element_text(size = 10L)
+  )
+
+
+```
+
+
+## Description of variables assessing practice 
+```{r}
+prac_data<-data3 %>% 
+  select(c("How often do you perform BSE","How long have you been practicing BSE","Do you perform BSE at thesame time every month","How do you typically perform BSE","Which part of your breast do you examine during BSE","Do you use any aids or tools during BSE","When last did you do a BSE"))
+
+ tbl_summary( prac_data,
+    type = list(
+      all_dichotomous() ~ "categorical"  # Treat all Yes/No as categorical, not dichotomous
+    ),
+    statistic = list(all_categorical() ~ "{n} ({p}%)")
+  )
+
+
+
+
+```
+
+
+## Figure 5
+
+This is a visual representation of the overall Practice of BSE among adolescents females at Bilingual Grammar school and St Jules peter in Buea,cameroon
+
+```{r}
+ ggplot(data5) +
+  aes(x ="", fill = PracticeRemark) +
+  geom_bar() +
+  labs(
+    caption = "Visualisation of overall Attitude"
+  )+
+  coord_polar(theta = "y") +
+  theme_void()
+
+```
+
+
+
+## Practice x Sociodemographic Data
+
+This table shows the overall distribution of Practice BSE among adolescent females, based on the demographic data and stating their p-value which was obtained using the chisq.test
+
+```{r}
+
+pracxremark<-data5 %>% 
+ select(c("Age group","School" ,"Sex","Religion","Residence", "With whom do you stay with" ,"What is your class", "Do you have any disability", "Do you have any family history of breast cancer","PracticeRemark")) %>% 
+  tbl_summary(by = PracticeRemark, # Replace 'Outcome' with the name of your Yes/No column
+              type = list(
+                          all_dichotomous() ~ "categorical"  # Treat all Yes/No as categorical, not dichotomous
+                          ),# Replace 'Outcome' with the name of your Yes/No column
+    statistic = list(all_categorical() ~ "{n} ({p}%)"),
+    digits = list(all_categorical() ~ c(0, 1))) %>%
+  add_p(test = list(all_categorical() ~ "chisq.test"), 
+        pvalue_fun = function(x) style_pvalue(x, digits = 3)) %>%
+  modify_header(label ~ "*Category*") %>%
+  bold_labels()
+pracxremark
+
+
+
+
+
+
+
+
+```
+
+
+
+
+
+## Figure 6
+
+The graph below compare the overall Practice of BSE between adolescent girls at Bilingual grammar school and Bishop Jules Peter
+
+```{r}
+ggplot(data5) +
+  aes(x = PracticeRemark, fill = School) +
+  geom_bar(position = "dodge2") +
+  scale_fill_hue(direction = 1) +
+  labs(
+    caption = "2024 visualization of Practice of BSE amongst Bilingual Grammar School and Bishop Jules Peter"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.y = element_text(size = 20L),
+    axis.text.x = element_text(size = 10L)
+  )
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,103 @@
+---
+title: "mentor research"
+author: "NGWASIRI CHELSEA"
+date: "2025-10-26"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+
+```{r cars}
+if(!require(pacman))
+  instal.packages("pacman")
+pacman::p_load(janitor,
+               tidyverse,
+               gt,
+               here,
+               readxl
+               )
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r load data}
+data<-readxl::read_excel(here("data/mentor_edited.xlsx"))
+summary(data)
+```
+
+
+```{r cleaning data, message=FALSE, include=FALSE}
+#####
+#CHANGING THE VAIRABLES OF THE DATA
+
+data1<-data %>% 
+mutate(Age=as.integer(Age))#CHANGING AGE TO A NUMERICAL VAIRABLE
+summary(data1)
+data2<-data1 %>% 
+  mutate(across(where(is.character),as.factor))  #MUTATING ALL CATEGORICAL DATA INTO FACTORS
+summary(data2)
+
+
+#####
+#CREATING AN AGE GROUP COLUMN
+data3<-data2 %>% 
+  mutate(`Age group`=case_when(Age>=10 & Age<=13 ~ "10-13",
+                             Age>=14 & Age<=16 ~ "14-16"
+                             ,TRUE~ "17-19")) %>% 
+  select(`Age group`,everything())
+summary(data3)
+
+#####
+#REMOVING COLUMS THAT ARENT NEEDED
+data4<-data3 %>% 
+select(!c("start","end","Specify others","Do you use any aids or tools during BSE/Option 5","Do you have a at history of breast cancer","At what age should you start performing","Do you think BSE is a private matter that should not be discussed openly","Do you think BSE is time consuming or inconvenient","Do you believe that BSE can help prevent breast cancer","Ethnic group")) %>% 
+  mutate(`Age group`=as.factor(`Age group`))
+summary(data4)
+```
+
+```{r demographic data}
+demo_data<-data4 %>% 
+  select("Age group","School","Sex","Religion","Residence","What is your class","Do you have any disability","Do you have any family history of breast cancer")  
+
+
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

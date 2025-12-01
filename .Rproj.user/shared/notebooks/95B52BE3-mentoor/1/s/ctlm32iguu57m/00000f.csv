@@ -1,0 +1,8 @@
+"0","demo_data<-data4 %>% 
+  select(""Age group"",""Schoo"",""Sex"",""Religion"",""Residence"",""What is your class"",""Do you have any disability"",""Do you have any family history of breast cancer"")  
+"
+"1","[1m[33mError[39m in `select()`:[22m
+[33m![39m Can't select columns that don't exist.
+[31m✖[39m Column `Schoo` doesn't exist.
+[90mRun `]8;;x-r-run:rlang::last_trace()rlang::last_trace()]8;;` to see where the error occurred.[39m
+"

@@ -1,0 +1,34 @@
+---
+title: "Derane"
+author: "NGWASIRI CHELSEA"
+date: "2025-10-29"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r packages, include=FALSE}
+if(!require(pacman))
+  install.packages("pacman")
+pacman::p_load(tidyverse,
+               gt,
+               readxl,
+               janitor,
+               here)
+
+
+
+
+```
+
+
+```{r ,include=FALSE}
+data<-read_excel(here("Data/excel combined 2.xlsx"))
+summary(data)
+ mutate(where(all.))
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
